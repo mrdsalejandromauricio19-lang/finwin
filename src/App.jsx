@@ -115,70 +115,69 @@ function Confetti({active}){
 }
 
 /* ══════════════════════════════════════════════════════════
-   NEO — Floating SVG Robot (matches the image style)
+   NEO — SVG Robot with animated arms
 ══════════════════════════════════════════════════════════ */
-function NeoRobot({mood="idle",size=80,floating=false}){
-  const eyes={idle:T.cyan,happy:T.green,celebrate:T.gold,thinking:T.plat,sad:T.red,chat:T.cyan};
+function NeoRobot({mood="idle",size=80,armAnim=false}){
+  const eyes={idle:T.cyan,happy:T.green,celebrate:T.gold,thinking:T.plat,sad:T.red,chat:T.cyan,laugh:T.gold};
   const eyeColor=eyes[mood]||T.cyan;
-  const bounce=mood==="celebrate"||mood==="happy";
+  const bounce=mood==="celebrate"||mood==="laugh";
+  const waving=armAnim||mood==="celebrate"||mood==="happy"||mood==="laugh";
+  const uid=`ng${Math.random().toString(36).slice(2,7)}`;
   return(
     <div style={{
-      width:size,height:size*1.15,
-      animation:bounce?"neoJump .5s ease infinite alternate":floating?"neoFloat 3s ease-in-out infinite":"none",
-      filter:`drop-shadow(0 0 ${size*.12}px ${eyeColor}60)`,
+      width:size,height:size*1.2,
+      animation:bounce?"neoJump .45s ease infinite alternate":"none",
+      filter:`drop-shadow(0 0 ${size*.13}px ${eyeColor}55)`,
       display:"flex",alignItems:"center",justifyContent:"center",
     }}>
-      <svg width={size} height={size*1.15} viewBox="0 0 100 115" fill="none">
-        {/* Signal waves */}
+      <svg width={size} height={size*1.2} viewBox="0 0 100 120" fill="none" overflow="visible">
         <path d="M38 12 Q50 5 62 12" stroke={T.gold} strokeWidth="3" fill="none" strokeLinecap="round"
           opacity={mood==="idle"||mood==="chat"?".85":".2"} style={{transition:"opacity .4s"}}/>
         <path d="M32 17 Q50 7 68 17" stroke={T.gold} strokeWidth="2.5" fill="none" strokeLinecap="round"
           opacity={mood==="idle"||mood==="chat"?".5":".1"} style={{transition:"opacity .4s"}}/>
-        {/* Antenna */}
         <line x1="50" y1="22" x2="50" y2="8" stroke="#8899bb" strokeWidth="3" strokeLinecap="round"/>
         <circle cx="50" cy="6" r="6" fill={T.cyan} opacity=".9"/>
         <circle cx="50" cy="6" r="3" fill="#eef8ff"/>
-        {/* Head body — white rounded rectangle like in image */}
         <rect x="14" y="22" width="72" height="52" rx="16" fill="#d4ddf5" stroke="#e8f0ff" strokeWidth=".8"/>
-        <rect x="14" y="22" width="72" height="52" rx="16" fill="url(#headGrad)"/>
-        {/* Screen area */}
+        <rect x="14" y="22" width="72" height="52" rx="16" fill={`url(#hg${uid})`}/>
         <rect x="20" y="28" width="60" height="40" rx="10" fill="#2a3555"/>
-        {/* Eyes — teal rectangles like in image */}
-        <rect x="26" y="36" width="18" height="22" rx="5" fill={eyeColor} opacity=".9"/>
-        <rect x="56" y="36" width="18" height="22" rx="5" fill={eyeColor} opacity=".9"/>
-        {/* Eye shine */}
-        <rect x="29" y="39" width="6" height="6" rx="2" fill="white" opacity=".4"/>
-        <rect x="59" y="39" width="6" height="6" rx="2" fill="white" opacity=".4"/>
-        {/* Sad mouth */}
+        {mood!=="laugh"&&<>
+          <rect x="26" y="36" width="18" height="22" rx="5" fill={eyeColor} opacity=".9"/>
+          <rect x="56" y="36" width="18" height="22" rx="5" fill={eyeColor} opacity=".9"/>
+          <rect x="29" y="39" width="6" height="6" rx="2" fill="white" opacity=".4"/>
+          <rect x="59" y="39" width="6" height="6" rx="2" fill="white" opacity=".4"/>
+        </>}
+        {mood==="laugh"&&<>
+          <line x1="27" y1="37" x2="43" y2="57" stroke={T.gold} strokeWidth="3.5" strokeLinecap="round"/>
+          <line x1="43" y1="37" x2="27" y2="57" stroke={T.gold} strokeWidth="3.5" strokeLinecap="round"/>
+          <line x1="57" y1="37" x2="73" y2="57" stroke={T.gold} strokeWidth="3.5" strokeLinecap="round"/>
+          <line x1="73" y1="37" x2="57" y2="57" stroke={T.gold} strokeWidth="3.5" strokeLinecap="round"/>
+        </>}
         {mood==="sad"&&<path d="M38 63 Q50 57 62 63" stroke={T.red} strokeWidth="2.5" fill="none" strokeLinecap="round"/>}
-        {/* Happy mouth */}
-        {(mood==="happy"||mood==="celebrate")&&<path d="M38 60 Q50 67 62 60" stroke={T.green} strokeWidth="2.5" fill="none" strokeLinecap="round"/>}
-        {/* Chest / body */}
-        <rect x="22" y="72" width="56" height="28" rx="12" fill="#d4ddf5" stroke="#e8f0ff" strokeWidth=".8"/>
-        <rect x="22" y="72" width="56" height="28" rx="12" fill="url(#bodyGrad)"/>
-        {/* Chest button */}
-        <rect x="38" y="82" width="24" height="10" rx="5" fill={T.cyan} opacity=".8"/>
-        {/* Left arm */}
-        <path d="M14 75 Q4 80 6 90" stroke="#8899bb" strokeWidth="5" strokeLinecap="round"/>
-        <path d="M14 75 Q4 80 6 90" stroke="#6677aa" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 3"/>
-        {/* Left claw */}
-        <circle cx="6" cy="93" r="7" fill={T.cyan} opacity=".85"/>
-        <path d="M2 90 Q-1 86 2 83" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        <path d="M10 90 Q13 86 10 83" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        {/* Right arm */}
-        <path d="M86 75 Q96 80 94 90" stroke="#8899bb" strokeWidth="5" strokeLinecap="round"/>
-        <path d="M86 75 Q96 80 94 90" stroke="#6677aa" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 3"/>
-        {/* Right claw */}
-        <circle cx="94" cy="93" r="7" fill={T.cyan} opacity=".85"/>
-        <path d="M90 90 Q87 86 90 83" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        <path d="M98 90 Q101 86 98 83" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        {/* Gradients */}
+        {(mood==="happy"||mood==="celebrate"||mood==="laugh")&&<path d="M37 60 Q50 68 63 60" stroke={T.green} strokeWidth="2.5" fill="none" strokeLinecap="round"/>}
+        <rect x="22" y="72" width="56" height="30" rx="12" fill="#d4ddf5" stroke="#e8f0ff" strokeWidth=".8"/>
+        <rect x="22" y="72" width="56" height="30" rx="12" fill={`url(#bg${uid})`}/>
+        <rect x="38" y="82" width="24" height="11" rx="5.5" fill={T.cyan} opacity=".8"/>
+        <g style={{transformOrigin:"14px 78px",animation:waving?"waveL 0.55s ease-in-out infinite alternate":"none"}}>
+          <path d="M14 78 Q2 84 4 96" stroke="#8899bb" strokeWidth="5" strokeLinecap="round"/>
+          <path d="M14 78 Q2 84 4 96" stroke="#6677aa" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 3"/>
+          <circle cx="4" cy="99" r="7" fill={T.cyan} opacity=".85"/>
+          <path d="M0 96 Q-3 92 0 89" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+          <path d="M8 96 Q11 92 8 89" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        </g>
+        <g style={{transformOrigin:"86px 78px",animation:waving?"waveR 0.55s ease-in-out infinite alternate":"none"}}>
+          <path d="M86 78 Q98 84 96 96" stroke="#8899bb" strokeWidth="5" strokeLinecap="round"/>
+          <path d="M86 78 Q98 84 96 96" stroke="#6677aa" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 3"/>
+          <circle cx="96" cy="99" r="7" fill={T.cyan} opacity=".85"/>
+          <path d="M92 96 Q89 92 92 89" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+          <path d="M100 96 Q103 92 100 89" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        </g>
         <defs>
-          <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`hg${uid}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="white" stopOpacity=".25"/>
             <stop offset="1" stopColor="#a0b0d0" stopOpacity=".1"/>
           </linearGradient>
-          <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`bg${uid}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="white" stopOpacity=".2"/>
             <stop offset="1" stopColor="#8090b0" stopOpacity=".05"/>
           </linearGradient>
@@ -186,44 +185,101 @@ function NeoRobot({mood="idle",size=80,floating=false}){
       </svg>
       <style>{`
         @keyframes neoJump{from{transform:translateY(0)}to{transform:translateY(-10px)}}
-        @keyframes neoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes waveL{from{transform:rotate(-28deg)}to{transform:rotate(18deg)}}
+        @keyframes waveR{from{transform:rotate(28deg)}to{transform:rotate(-18deg)}}
       `}</style>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════
-   FLOATING NEO (bounces around screen)
+   FLOATING NEO — draggable, clickable, bounces freely
 ══════════════════════════════════════════════════════════ */
 function FloatingNeoMascot({mood}){
-  const posRef=useRef({x:30,y:100,vx:.6,vy:.4});
-  const[pos,setPos]=useState({x:30,y:100});
+  const posRef=useRef({x:40,y:120,vx:.55,vy:.38});
+  const[pos,setPos]=useState({x:40,y:120});
+  const[localMood,setLocalMood]=useState("idle");
+  const[dragging,setDragging]=useState(false);
+  const[armAnim,setArmAnim]=useState(false);
+  const[bubble,setBubble]=useState("");
   const animRef=useRef();
-  const[wave,setWave]=useState(false);
+  const dragRef=useRef(null);
+  const isPausedRef=useRef(false);
+  const laughLines=["¡Jajaja! 😂","¡Cosquillas! 😆","¡Para, para! 🤣","¡Hehehehe!","¡Me ticklea!"];
+  const greetLines=["¡Hola! 👋","¿Qué tal? 😊","¡Aquí estoy!","¡Vamos! 💪","¡Aprende conmigo!"];
 
   useEffect(()=>{
     const loop=()=>{
-      const p=posRef.current;
-      const W=Math.max(300,window.innerWidth-90);
-      const H=Math.max(400,window.innerHeight-150);
-      p.x+=p.vx; p.y+=p.vy;
-      if(p.x<=10||p.x>=W){p.vx*=-1;p.x=Math.max(10,Math.min(W,p.x));}
-      if(p.y<=60||p.y>=H){p.vy*=-1;p.y=Math.max(60,Math.min(H,p.y));}
-      setPos({x:Math.round(p.x),y:Math.round(p.y)});
+      if(!isPausedRef.current){
+        const p=posRef.current;
+        const W=Math.max(200,window.innerWidth-80);
+        const H=Math.max(300,window.innerHeight-160);
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<=8||p.x>=W){p.vx*=-1;p.x=Math.max(8,Math.min(W,p.x));}
+        if(p.y<=55||p.y>=H){p.vy*=-1;p.y=Math.max(55,Math.min(H,p.y));}
+        setPos({x:Math.round(p.x),y:Math.round(p.y)});
+      }
       animRef.current=requestAnimationFrame(loop);
     };
     animRef.current=requestAnimationFrame(loop);
-    const wi=setInterval(()=>{setWave(true);setTimeout(()=>setWave(false),900);},5000);
+    const wi=setInterval(()=>{
+      setArmAnim(true);setBubble(greetLines[Math.floor(Math.random()*greetLines.length)]);
+      setTimeout(()=>{setArmAnim(false);setBubble("");},2000);
+    },7000);
     return()=>{cancelAnimationFrame(animRef.current);clearInterval(wi);};
   },[]);
 
+  function handleClick(e){
+    e.stopPropagation();
+    if(dragRef.current?.moved) return;
+    setLocalMood("laugh");setArmAnim(true);
+    setBubble(laughLines[Math.floor(Math.random()*laughLines.length)]);
+    setTimeout(()=>{setLocalMood("idle");setArmAnim(false);setBubble("");},1600);
+  }
+
+  function onPointerDown(e){
+    e.preventDefault();
+    isPausedRef.current=true;
+    dragRef.current={ox:e.clientX-pos.x,oy:e.clientY-pos.y,moved:false};
+    setDragging(true);setLocalMood("happy");setArmAnim(true);
+    const onMove=ev=>{
+      const nx=ev.clientX-dragRef.current.ox;
+      const ny=ev.clientY-dragRef.current.oy;
+      dragRef.current.moved=true;
+      posRef.current.x=nx;posRef.current.y=ny;
+      setPos({x:nx,y:ny});
+    };
+    const onUp=()=>{
+      posRef.current.vx=(Math.random()>.5?1:-1)*(.4+Math.random()*.5);
+      posRef.current.vy=(Math.random()>.5?1:-1)*(.3+Math.random()*.4);
+      isPausedRef.current=false;
+      setDragging(false);setLocalMood("idle");setArmAnim(false);
+      dragRef.current=null;
+      window.removeEventListener("pointermove",onMove);
+      window.removeEventListener("pointerup",onUp);
+    };
+    window.addEventListener("pointermove",onMove);
+    window.addEventListener("pointerup",onUp);
+  }
+
+  const cm=localMood!=="idle"?localMood:mood;
   return(
-    <div style={{
-      position:"fixed",left:pos.x,top:pos.y,zIndex:45,
-      pointerEvents:"none",
-      filter:`drop-shadow(0 4px 16px rgba(0,229,204,.3))`,
-    }}>
-      <NeoRobot mood={wave?"celebrate":mood} size={62}/>
+    <div style={{position:"fixed",left:pos.x,top:pos.y,zIndex:45,userSelect:"none",cursor:dragging?"grabbing":"grab",touchAction:"none"}}
+      onPointerDown={onPointerDown} onClick={handleClick}>
+      {bubble&&(
+        <div style={{position:"absolute",bottom:"105%",left:"50%",transform:"translateX(-50%)",
+          background:T.card2,border:`1px solid ${T.cyan}50`,borderRadius:12,padding:"5px 11px",
+          fontSize:12,fontWeight:700,color:T.cyan,whiteSpace:"nowrap",marginBottom:3,
+          boxShadow:`0 2px 12px rgba(0,229,204,.25)`,pointerEvents:"none",
+          animation:"bpop .18s ease"}}>
+          {bubble}
+          <div style={{position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",
+            width:0,height:0,borderLeft:"6px solid transparent",borderRight:"6px solid transparent",
+            borderTop:`6px solid ${T.card2}`}}/>
+        </div>
+      )}
+      <NeoRobot mood={cm} size={64} armAnim={armAnim||dragging}/>
+      <style>{`@keyframes bpop{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}`}</style>
     </div>
   );
 }
@@ -244,53 +300,53 @@ function NeoChat({points}){
 
   useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs,loading]);
 
-  async function send(text){
+  function getReply(t){
+    const q=t.toLowerCase();
+    const has=(...ws)=>ws.some(w=>q.includes(w));
+    if(has("hola","buenas","hey","saludos","hi","ola"))
+      return `¡Hola! 👋 Qué bueno verte. Soy **Neo**, tu guía financiero.\n\nYa tienes **${points} pts** — ¡vas bien! ¿Qué quieres aprender hoy? Puedo explicarte ahorro, presupuesto, deudas, inversiones o cualquier duda financiera. 💡`;
+    if(has("ahorro","ahorrar","guardar dinero"))
+      return `¡Excelente tema! 💰 **Ahorrar** es gastar menos de lo que ganas y guardar la diferencia.\n\nEl truco más simple: **págate a ti mismo primero**. Apenas llegue tu sueldo, separa el 10-20% antes de gastar en cualquier otra cosa. Si ganas $500, guarda $50-$100 inmediatamente.\n\nEmpieza con una meta concreta: "voy a ahorrar $20 esta semana". El hábito importa más que el monto. ¿Te enseño cómo crear un plan de ahorro paso a paso?`;
+    if(has("presupuesto","planificar","organizar gastos"))
+      return `Un **presupuesto** es tu mapa del dinero — te dice a dónde va cada dólar antes de que lo gastes. 🗺️\n\nLa forma más sencilla: **regla 50/30/20**\n• 50% → Necesidades (arriendo, comida, transporte)\n• 30% → Deseos (salidas, ropa, entretenimiento)\n• 20% → Ahorro e inversión\n\nEjemplo con $800: $400 necesidades · $240 deseos · $160 ahorro. ¿Quieres aplicarla a tu ingreso real?`;
+    if(has("interes compuesto","interés compuesto","compuesto"))
+      return `¡El **interés compuesto** es la maravilla de las finanzas! Einstein lo llamó la octava maravilla del mundo 🌟\n\n$100 al 10% anual:\n• Año 1: $110 • Año 2: $121 • Año 5: $161 • Año 20: ¡$672!\n\nEl secreto: los **intereses ganan intereses**. Cuanto antes empieces, más crece. Con tus **${points} pts** en FinWin ya estás construyendo ese hábito. ¿Te explico cómo empezar a aprovecharlo?`;
+    if(has("deuda","deudas","debo","credito","crédito","prestamo","préstamo"))
+      return `Las deudas se atacan con estrategia. 💪\n\n**Método avalancha** (más eficiente): paga primero la deuda con mayor interés (generalmente tarjeta de crédito), mientras haces mínimos en las demás.\n\n**Método bola de nieve** (más motivador): paga la deuda más pequeña primero para ganar impulso.\n\nLo más importante: **nunca pagues solo el mínimo** de la tarjeta — los intereses pueden duplicar tu deuda. ¿Quieres una estrategia para tu situación?`;
+    if(has("inversion","invertir","inversión","bolsa","acciones","cripto"))
+      return `¡Invertir = hacer que tu dinero trabaje para ti! 📈\n\nAntes de invertir asegúrate de tener: (1) fondo de emergencia y (2) deudas caras pagadas.\n\nPara empezar sin mucho riesgo: **fondos indexados** — invierten en muchas empresas a la vez, reduciendo el riesgo. En varios países puedes empezar con $10-$50 al mes.\n\nLas **criptomonedas** son muy volátiles — solo invierte lo que puedas permitirte perder. ¿Qué tipo de inversión te interesa más?`;
+    if(has("emergencia","fondo emergencia","imprevisto"))
+      return `El **fondo de emergencia** es tu red de seguridad 🛡️\n\nMeta ideal: **3 a 6 meses de gastos básicos** guardados en cuenta de fácil acceso.\n\nSi gastas $500/mes → tu meta es $1,500 a $3,000. Parece mucho, pero guardando $50-$100/mes llegas en 1-2 años.\n\nEste fondo te protege de endeudarte cuando algo inesperado pasa. ¿Te ayudo a calcular cuánto necesitas tú?`;
+    if(has("tarjeta","tarjeta credito","tarjeta de crédito"))
+      return `Las **tarjetas de crédito** son herramienta poderosa pero peligrosa si no se usan bien ⚠️\n\nRegla de oro: **paga el saldo total cada mes**. Así usas dinero del banco gratis 30 días y hasta ganas puntos.\n\nSi no pagas todo, los intereses pueden ser 30-60% anual — altísimo. Recuerda: la tarjeta NO es dinero extra, es un adelanto de tu dinero futuro. ¿Tienes dudas sobre cómo manejar la tuya?`;
+    if(has("inflacion","inflación","precios suben"))
+      return `La **inflación** es la subida general de precios. Si hoy un café cuesta $1 y el año que viene $1.10, eso es 10% de inflación ☕\n\nEl problema: el dinero bajo el colchón **pierde valor** con el tiempo porque compra menos cosas.\n\nSolución: invertir en activos que crezcan **más que la inflación** para que tu dinero no pierda poder de compra. ¿Te explico cómo proteger tus ahorros?`;
+    if(has("regla 50","50/30/20","50 30 20"))
+      return `¡La **regla 50/30/20** es perfecta para empezar! 🎯\n\n**50% → Necesidades**: arriendo, comida, transporte, salud, servicios.\n**30% → Deseos**: restaurantes, entretenimiento, ropa, suscripciones.\n**20% → Ahorro/inversión**: fondo emergencia, metas, retiro.\n\nCon $600: $300 necesidades · $180 deseos · $120 ahorro. Al principio cuesta, pero en un mes se vuelve hábito. ¿La aplicamos a tu ingreso?`;
+    if(has("gracias","genial","perfecto","entendí","entendi","claro","excelente"))
+      return `¡Me alegra mucho! 🎉 Eso demuestra que estás construyendo una mente financiera más fuerte.\n\nCon **${points} pts** en FinWin ya vas en serio. Cada pregunta que haces te hace más sabio 💪\n\n¿Hay otro tema financiero que quieras explorar?`;
+    if(has("no entend","no entiendo","confus","explica","otra vez","más simple","mas simple"))
+      return `¡Tranquilo, es totalmente normal! Las finanzas pueden ser confusas al principio 😊\n\n¿Me dices qué parte específica no quedó clara? Así te doy un ejemplo diferente, más cercano a tu vida diaria.\n\nRecuerda: **no hay preguntas tontas**. Estoy aquí para explicarte las veces que necesites, con toda la paciencia del mundo.`;
+    const defaults=[
+      `¡Buena pregunta! 🤔 En finanzas personales todo conecta: ahorro, gastos, deudas e inversiones forman un ecosistema. Mejorar uno mejora todos.\n\nPuedo hablarte de **ahorro**, **presupuesto**, **deudas**, **inversiones**, **tarjetas de crédito** o cualquier concepto financiero. ¿Por dónde empezamos?`,
+      `Interesante 💡 El conocimiento financiero se construye pregunta a pregunta, exactamente como estás haciendo tú.\n\nCon **${points} pts** en FinWin ya demostraste que vas en serio. Dime sobre qué tema quieres profundizar hoy.`,
+      `¡Me alegra que tengas curiosidad! 🌟 El simple hecho de preguntar sobre finanzas ya te pone adelante.\n\nPuedo enseñarte sobre: ahorro · presupuesto · deudas · inversiones · tarjetas · interés compuesto. ¿Cuál te llama más la atención?`,
+    ];
+    return defaults[Math.floor(Math.random()*defaults.length)];
+  }
+
+  function send(text){
     const t=(text||input).trim();
     if(!t||loading) return;
     setInput("");
-    const updated=[...msgs,{role:"user",text:t}];
-    setMsgs(updated);
+    setMsgs(p=>[...p,{role:"user",text:t}]);
     setLoading(true);setNeoMood("thinking");
-    try{
-      const history=updated.slice(-12).map(m=>({
-        role:m.role==="assistant"?"assistant":"user",
-        content:m.text
-      }));
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:500,
-          system:`Eres Neo 🤖, asistente financiero dentro de la app FinWin. Eres paciente, amigable, didáctico y hablas en español latinoamericano cálido.
-
-REGLAS:
-- Explica con analogías simples y ejemplos del día a día (café, mercado, transporte)
-- Máximo 3 párrafos cortos por respuesta
-- Usa **negritas** para términos clave
-- Al final pregunta si quedó claro o si quiere saber más
-- Celebra el aprendizaje del usuario con entusiasmo moderado
-- Si preguntan algo no financiero, redirige amablemente a temas de dinero
-- Nunca te frustres, siempre ofrece explicar de otra manera
-
-El usuario tiene ${points} puntos en FinWin. Menciónalo si es relevante para motivarlo.`,
-          messages:history,
-        })
-      });
-      if(!res.ok){
-        const err=await res.text();
-        throw new Error(`HTTP ${res.status}: ${err}`);
-      }
-      const d=await res.json();
-      const reply=d?.content?.[0]?.text||"No pude generar una respuesta. Intenta de nuevo 🙏";
-      setMsgs(p=>[...p,{role:"assistant",text:reply}]);
-      setNeoMood("happy");setTimeout(()=>setNeoMood("chat"),2000);
-    }catch(e){
-      console.error("Neo API error:",e);
-      setMsgs(p=>[...p,{role:"assistant",text:`❌ Error de conexión: ${e.message}\n\nVerifica que la app esté correctamente desplegada en Vercel con acceso a la API.`}]);
-      setNeoMood("sad");setTimeout(()=>setNeoMood("chat"),2000);
-    }
-    setLoading(false);
+    setTimeout(()=>{
+      setMsgs(p=>[...p,{role:"assistant",text:getReply(t)}]);
+      setNeoMood("happy");
+      setTimeout(()=>setNeoMood("chat"),2000);
+      setLoading(false);
+    },700+Math.random()*600);
   }
 
   function fmt(text){
