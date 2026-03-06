@@ -65,6 +65,10 @@ export default function FinWinApp() {
   const [saved, setSaved] = useLocalStorage("fw_saved", 0);
   const [showAdd, setShowAdd] = useState(false);
   const [showProof, setShowProof] = useState(null);
+  const [showRedeem, setShowRedeem] = useState(null);
+  const [redeemName, setRedeemName] = useState("");
+  const [redeemPhone, setRedeemPhone] = useState("");
+  const [redeemSent, setRedeemSent] = useState(false);
   const [proofText, setProofText] = useState("");
   const [proofImg, setProofImg] = useState(null);
   const [newDesc, setNewDesc] = useState("");
@@ -119,6 +123,14 @@ export default function FinWinApp() {
     const monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
     const total = monthly * n;
     setCalcResult({ monthly: monthly.toFixed(2), total: total.toFixed(2), interest: (total - P).toFixed(2) });
+  }
+
+  function sendRedeem(prize) {
+    if (!redeemName || !redeemPhone) return;
+    const msg = encodeURIComponent(`🎁 *CANJE DE PREMIO FINWIN*\n\n👤 Nombre: ${redeemName}\n📱 Teléfono: ${redeemPhone}\n🏆 Premio: ${prize.icon} ${prize.label}\n⚡ Puntos usados: ${prize.pts}\n\n¡El usuario ha canjeado su premio!`);
+    setPoints(p => p - prize.pts);
+    setRedeemSent(true);
+    setTimeout(() => { window.open(`https://wa.me/593981257047?text=${msg}`, "_blank"); }, 500);
   }
 
   const navItems = [
@@ -399,7 +411,7 @@ export default function FinWinApp() {
                   <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>{p.desc}</div>
                   <div style={{ fontSize: 12, color: C.gold, marginBottom: 10, fontWeight: 700 }}>⚡ {p.pts.toLocaleString()} pts</div>
                   {unlocked
-                    ? <button style={{ background: `linear-gradient(135deg, ${C.green}, #00a060)`, border: "none", borderRadius: 20, padding: "7px 18px", color: C.bg, fontWeight: 800, cursor: "pointer", fontSize: 13 }}>Canjear</button>
+                    ? <button onClick={() => { setShowRedeem(p); setRedeemName(""); setRedeemPhone(""); setRedeemSent(false); }} style={{ background: `linear-gradient(135deg, ${C.green}, #00a060)`, border: "none", borderRadius: 20, padding: "7px 18px", color: C.bg, fontWeight: 800, cursor: "pointer", fontSize: 13 }}>Canjear &#x1F381;</button>
                     : <div style={{ fontSize: 11, color: C.muted, background: "#1a2035", borderRadius: 20, padding: "5px 10px", display: "inline-block" }}>Faltan {(p.pts - points).toLocaleString()} pts</div>
                   }
                 </div>
@@ -440,6 +452,39 @@ export default function FinWinApp() {
         </div>
       )}
 
+
+      {/* REDEEM MODAL */}
+      {showRedeem && (
+        <div style={{ position: "fixed", inset: 0, background: "#000000cc", display: "flex", alignItems: "flex-end", zIndex: 100 }} onClick={() => setShowRedeem(null)}>
+          <div style={{ background: "#0a0d1a", borderRadius: "24px 24px 0 0", padding: 24, width: "100%", maxWidth: 430, margin: "0 auto", border: "1px solid #00e67630", borderBottom: "none" }} onClick={e => e.stopPropagation()}>
+            <div style={{ width: 40, height: 4, background: "#1a2035", borderRadius: 4, margin: "0 auto 20px" }} />
+            {!redeemSent ? (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 20 }}>
+                  <div style={{ fontSize: 50, marginBottom: 8 }}>{showRedeem.icon}</div>
+                  <div style={{ fontWeight: 900, fontSize: 20, color: "#dce8f5" }}>{showRedeem.label}</div>
+                  <div style={{ fontSize: 13, color: "#4a5568", marginTop: 4 }}>{showRedeem.desc}</div>
+                  <div style={{ color: "#ffc107", fontWeight: 700, fontSize: 14, marginTop: 8 }}>⚡ {showRedeem.pts.toLocaleString()} puntos</div>
+                </div>
+                <div style={{ fontSize: 13, color: "#b8c4d4", fontWeight: 700, marginBottom: 8 }}>Tu nombre completo:</div>
+                <input type="text" placeholder="Ej: Juan Pérez" value={redeemName} onChange={e => setRedeemName(e.target.value)} style={{ width: "100%", background: "#0a0d1a", border: "1px solid #1a2035", borderRadius: 10, padding: "12px 14px", color: "#e8f0fe", fontSize: 15, marginBottom: 12, boxSizing: "border-box", outline: "none" }} />
+                <div style={{ fontSize: 13, color: "#b8c4d4", fontWeight: 700, marginBottom: 8 }}>Tu número de WhatsApp:</div>
+                <input type="tel" placeholder="Ej: 0981234567" value={redeemPhone} onChange={e => setRedeemPhone(e.target.value)} style={{ width: "100%", background: "#0a0d1a", border: "1px solid #1a2035", borderRadius: 10, padding: "12px 14px", color: "#e8f0fe", fontSize: 15, marginBottom: 16, boxSizing: "border-box", outline: "none" }} />
+                <button onClick={() => sendRedeem(showRedeem)} disabled={!redeemName || !redeemPhone} style={{ width: "100%", background: redeemName && redeemPhone ? "linear-gradient(135deg, #00e676, #00a060)" : "#1a2035", border: "none", borderRadius: 14, padding: 15, color: redeemName && redeemPhone ? "#050810" : "#4a5568", fontWeight: 800, fontSize: 16, cursor: redeemName && redeemPhone ? "pointer" : "not-allowed" }}>
+                  Confirmar Canje 🎁
+                </button>
+              </>
+            ) : (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ fontSize: 60, marginBottom: 16 }}>🎉</div>
+                <div style={{ fontWeight: 900, fontSize: 22, color: "#00e676", marginBottom: 8 }}>¡Canje enviado!</div>
+                <div style={{ fontSize: 14, color: "#b8c4d4", lineHeight: 1.6, marginBottom: 20 }}>Te contactaremos por WhatsApp para entregarte tu premio. ¡Gracias por usar FinWin!</div>
+                <button onClick={() => setShowRedeem(null)} style={{ background: "linear-gradient(135deg, #0066ff, #0099ff)", border: "none", borderRadius: 14, padding: "12px 30px", color: "white", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>Cerrar</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {/* ADD TRANSACTION MODAL */}
       {showAdd && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", display: "flex", alignItems: "flex-end", zIndex: 100 }} onClick={() => setShowAdd(false)}>
