@@ -13,13 +13,7 @@ const COLORS = {
   muted: "#64748b",
 };
 
-const mockTransactions = [
-  { id: 1, desc: "Supermercado", amount: -45.5, cat: "🛒", date: "Hoy" },
-  { id: 2, desc: "Salario", amount: 1200, cat: "💼", date: "Ayer" },
-  { id: 3, desc: "Netflix", amount: -12, cat: "🎬", date: "Lun" },
-  { id: 4, desc: "Freelance", amount: 250, cat: "💻", date: "Dom" },
-  { id: 5, desc: "Restaurante", amount: -28, cat: "🍔", date: "Sáb" },
-];
+
 
 const challenges = [
   { id: 1, title: "No gastar en lujos 3 días", pts: 150, done: false, icon: "🎯" },
@@ -35,40 +29,57 @@ const tips = [
 ];
 
 const prizes = [
-  { pts: 500, label: "Café gratis", icon: "☕", unlocked: true },
-  { pts: 1000, label: "Mes Premium", icon: "⭐", unlocked: true },
-  { pts: 2000, label: "Gift Card $20", icon: "🎁", unlocked: false },
-  { pts: 5000, label: "Viaje sorpresa", icon: "✈️", unlocked: false },
+  { pts: 500, label: "Café gratis", icon: "☕" },
+  { pts: 1000, label: "Mes Premium", icon: "⭐" },
+  { pts: 2000, label: "Gift Card $20", icon: "🎁" },
+  { pts: 5000, label: "Viaje sorpresa", icon: "✈️" },
 ];
+
+function useLocalStorage(key, initial) {
+  const [val, setVal] = useState(() => {
+    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : initial; } catch { return initial; }
+  });
+  const set = (v) => {
+    setVal(prev => {
+      const next = typeof v === "function" ? v(prev) : v;
+      try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  return [val, set];
+}
 
 export default function FinWinApp() {
   const [tab, setTab] = useState("dashboard");
-  const [points, setPoints] = useState(1050);
-  const [balance, setBalance] = useState(3240.5);
+  const [points, setPoints] = useLocalStorage("fw_points", 0);
+  const [balance, setBalance] = useLocalStorage("fw_balance", 0);
+  const [transactions, setTransactions] = useLocalStorage("fw_transactions", []);
+  const [completedChallenges, setCompletedChallenges] = useLocalStorage("fw_challenges", []);
+  const [saved, setSaved] = useLocalStorage("fw_saved", 0);
   const [showAdd, setShowAdd] = useState(false);
   const [newDesc, setNewDesc] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newType, setNewType] = useState("gasto");
-  const [transactions, setTransactions] = useState(mockTransactions);
-  const [completedChallenges, setCompletedChallenges] = useState([2]);
   const [savingsGoal] = useState(500);
-  const [saved, setSaved] = useState(210);
   const [tipIdx, setTipIdx] = useState(0);
   const [debtAmount, setDebtAmount] = useState("");
   const [debtRate, setDebtRate] = useState("");
   const [debtMonths, setDebtMonths] = useState("");
   const [calcResult, setCalcResult] = useState(null);
 
-  const level = Math.floor(points / 500) + 1;
+  const level = Math.floor(points / 500);
   const levelProgress = ((points % 500) / 500) * 100;
 
   function addTransaction() {
     if (!newDesc || !newAmount) return;
+    const now = new Date();
+    const fecha = now.toLocaleDateString("es", { day: "numeric", month: "short" });
     const amt = newType === "gasto" ? -Math.abs(parseFloat(newAmount)) : Math.abs(parseFloat(newAmount));
-    setTransactions([{ id: Date.now(), desc: newDesc, amount: amt, cat: newType === "gasto" ? "💸" : "💰", date: "Ahora" }, ...transactions]);
+    const cat = newType === "gasto" ? "💸" : newType === "ahorro" ? "🏦" : "💰";
+    setTransactions(prev => [{ id: Date.now(), desc: newDesc, amount: amt, cat, date: fecha }, ...prev]);
     setBalance(b => b + amt);
     setPoints(p => p + 20);
-    setSaved(s => newType === "ahorro" ? s + Math.abs(amt) : s);
+    if (newType === "ahorro") setSaved(s => s + Math.abs(amt));
     setNewDesc(""); setNewAmount(""); setShowAdd(false);
   }
 
@@ -133,11 +144,11 @@ export default function FinWinApp() {
             <div style={{ display: "flex", gap: 20, marginTop: 12 }}>
               <div>
                 <div style={{ fontSize: 11, color: "#94a3b8" }}>Ingresos</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.green }}>+$1,450</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.green }}>+${transactions.filter(t=>t.amount>0).reduce((a,t)=>a+t.amount,0).toFixed(2)}</div>
               </div>
               <div>
                 <div style={{ fontSize: 11, color: "#94a3b8" }}>Gastos</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.red }}>-$85.50</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.red }}>-${Math.abs(transactions.filter(t=>t.amount<0).reduce((a,t)=>a+t.amount,0)).toFixed(2)}</div>
               </div>
             </div>
           </div>
@@ -170,7 +181,9 @@ export default function FinWinApp() {
           {/* Recent transactions */}
           <div style={{ background: COLORS.card, borderRadius: 14, padding: 16, border: `1px solid ${COLORS.cardBorder}` }}>
             <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 15 }}>Movimientos recientes</div>
-            {transactions.slice(0, 4).map(t => (
+            {transactions.length === 0
+              ? <div style={{ textAlign: "center", padding: "20px 0", color: COLORS.muted, fontSize: 14 }}>😴 Aún no hay movimientos.<br/>¡Registra tu primer gasto o ingreso!</div>
+              : transactions.slice(0, 4).map(t => (
               <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${COLORS.cardBorder}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 22 }}>{t.cat}</span>
@@ -195,7 +208,9 @@ export default function FinWinApp() {
           <button onClick={() => setShowAdd(true)} style={{ width: "100%", background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.purple})`, border: "none", borderRadius: 12, padding: "14px", color: "#0a0e1a", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 16 }}>
             + Nuevo registro (+20pts)
           </button>
-          {transactions.map(t => (
+          {transactions.length === 0
+            ? <div style={{ textAlign: "center", padding: "40px 0", color: COLORS.muted, fontSize: 14 }}>💸 Aún no hay transacciones.<br/>¡Registra tu primer movimiento!</div>
+            : transactions.map(t => (
             <div key={t.id} style={{ background: COLORS.card, borderRadius: 12, padding: "14px 16px", marginBottom: 10, border: `1px solid ${COLORS.cardBorder}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 26 }}>{t.cat}</span>
@@ -294,17 +309,20 @@ export default function FinWinApp() {
             <span style={{ fontWeight: 900, fontSize: 22, color: COLORS.gold }}>{points.toLocaleString()}</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {prizes.map(p => (
-              <div key={p.pts} style={{ background: COLORS.card, borderRadius: 14, padding: 18, border: `1px solid ${p.unlocked ? COLORS.gold + "50" : COLORS.cardBorder}`, textAlign: "center", opacity: p.unlocked ? 1 : 0.5 }}>
+            {prizes.map(p => {
+            const unlocked = points >= p.pts;
+            return (
+              <div key={p.pts} style={{ background: COLORS.card, borderRadius: 14, padding: 18, border: `1px solid ${unlocked ? COLORS.gold + "50" : COLORS.cardBorder}`, textAlign: "center", opacity: unlocked ? 1 : 0.5 }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>{p.icon}</div>
                 <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14 }}>{p.label}</div>
                 <div style={{ fontSize: 13, color: COLORS.gold }}>⚡ {p.pts.toLocaleString()} pts</div>
-                {p.unlocked
+                {unlocked
                   ? <button style={{ marginTop: 10, background: `linear-gradient(90deg, ${COLORS.gold}, #f59e0b)`, border: "none", borderRadius: 20, padding: "6px 16px", color: "#0a0e1a", fontWeight: 800, cursor: "pointer", fontSize: 13 }}>Canjear</button>
                   : <div style={{ marginTop: 10, fontSize: 12, color: COLORS.muted }}>Faltan {(p.pts - points).toLocaleString()} pts</div>
                 }
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       )}
@@ -342,3 +360,8 @@ export default function FinWinApp() {
     </div>
   );
 }
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+ReactDOM.createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>)
